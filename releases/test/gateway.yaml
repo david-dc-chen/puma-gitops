@@ -24,11 +24,11 @@ spec:
   values:
     replicaCount: 1
     container:
-      image: docker.sandbox2.apimgcp.com/repository/docker-hosted/gateway
-      tag: 26
+      image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
+      tag: v2
     imageCredentials:
-      name: "docker.sandbox2.apimgcp.com"
-      registry: "docker.sandbox2.apimgcp.com"
+      name: "docker.dev1.apimgcp.com"
+      registry: "docker.dev1.apimgcp.com"
       username: "admin"
     hazelcast:
       enabled: false
