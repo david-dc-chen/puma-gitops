@@ -11,7 +11,7 @@ metadata:
 spec:
   releaseName: gateway-test
   chart:
-    git: git@github.com:david-dc.chen/puma-gitops
+    git: git@github.com:david-dc-chen/puma-gitops
     path: charts/gateway
     ref: master
   valuesFrom:
