@@ -7,7 +7,7 @@ metadata:
   annotations:
 #    flux.weave.works/automated: "true"
     flux.weave.works/tag.gateway: glob:*
-    flux.weave.works/ignore: "true"
+#    flux.weave.works/ignore: "true"
 spec:
   releaseName: gateway-dev
   forceUpgrade: true
