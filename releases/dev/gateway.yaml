@@ -29,7 +29,7 @@ spec:
     replicaCount: 1
     container:
       image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
-      tag: 'v13'
+      tag: 'v17'
     imageCredentials:
       name: "docker.dev1.apimgcp.com"
       registry: "docker.dev1.apimgcp.com"

@@ -25,24 +25,24 @@ spec:
     replicaCount: 1
     container:
       image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
-      tag: 'v13'
+      tag: 'v17'
     imageCredentials:
       name: "docker.dev1.apimgcp.com"
       registry: "docker.dev1.apimgcp.com"
       username: "admin"
     hazelcast:
       enabled: false
-    service:  
+    service:
       ports:
-        - name: http
-          internal: 8080
-          external: 80
-        - name: https
-          internal: 8443
-          external: 443
-        - name: custom-http
-          internal: 12345
-          external: 12345
+      - name: http
+        internal: 8080
+        external: 80
+      - name: https
+        internal: 8443
+        external: 443
+      - name: custom-http
+        internal: 12345
+        external: 12345
     gateway:
       license:
         accept: "true"
@@ -52,13 +52,8 @@ spec:
         ENV.PASSWORD.password: "less secret test password"
         ENV.CONTEXT_VARIABLE_PROPERTY.influxdb.influxdb: "apim-service-metrics-runtime-influxdb.default"
         ENV.CONTEXT_VARIABLE_PROPERTY.influxdb.tags: "env=test"
-        ENV.LISTEN_PORT.custom-https: '{
-          "protocol" : "HTTP",
-          "port" : 12345,
-          "enabledFeatures" : [ "Published service message input" ],
-          "properties" : {
-            "threadPoolSize" : "20"
-          }
-            }'
+        ENV.LISTEN_PORT.custom-https: '{ "protocol" : "HTTP", "port" : 12345, "enabledFeatures"
+          : [ "Published service message input" ], "properties" : { "threadPoolSize"
+          : "20" } }'
 
 
