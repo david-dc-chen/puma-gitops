@@ -6,7 +6,7 @@ metadata:
   namespace: dev
   annotations:
     flux.weave.works/automated: "true"
-    flux.weave.works/tag.gateway: glob:*
+    flux.weave.works/tag.gateway: semver:*
 #    flux.weave.works/ignore: "true"
 spec:
   releaseName: gateway-dev
@@ -22,8 +22,8 @@ spec:
   - secretKeyRef:
       name: gateway-license
       key: license.yaml
-  - configMapKeyRef:
-      name: env-values
+  - secretKeyRef:
+      name: env
       key: env.yaml
   values:
     replicaCount: 1

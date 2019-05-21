@@ -7,7 +7,7 @@ metadata:
   annotations:
 #    flux.weave.works/ignore: "true"
     flux.weave.works/automated: "true"
-    flux.weave.works/tag.chart-image: glob:*
+    flux.weave.works/tag.chart-image: semver:*
 spec:
   releaseName: gateway-test
   chart:
@@ -21,6 +21,9 @@ spec:
   - secretKeyRef:
       name: gateway-license
       key: license.yaml
+  - secretKeyRef:
+      name: env
+      key: env.yaml
   values:
     replicaCount: 1
     container:
@@ -34,26 +37,12 @@ spec:
       enabled: false
     service:
       ports:
-      - name: http
-        internal: 8080
-        external: 80
-      - name: https
-        internal: 8443
-        external: 443
-      - name: custom-http
-        internal: 12345
-        external: 12345
-    gateway:
-      license:
-        accept: "true"
-      env:
-        ENV.PROPERTY.gateway.template: "New Testing environment"
-        ENV.CONTEXT_VARIABLE_PROPERTY.env-configuration.example: "New Testing environment"
-        ENV.PASSWORD.password: "less secret test password"
-        ENV.CONTEXT_VARIABLE_PROPERTY.influxdb.influxdb: "apim-service-metrics-runtime-influxdb.default"
-        ENV.CONTEXT_VARIABLE_PROPERTY.influxdb.tags: "env=test"
-        ENV.LISTEN_PORT.custom-https: '{ "protocol" : "HTTP", "port" : 12345, "enabledFeatures"
-          : [ "Published service message input" ], "properties" : { "threadPoolSize"
-          : "20" } }'
-
-
+        - name: http
+          internal: 8080
+          external: 80
+        - name: https
+          internal: 8443
+          external: 443
+        - name: custom-http
+          internal: 12345
+          external: 12345
