@@ -4,10 +4,11 @@ This chart deploys the API Gateway.
 
 ## Install gateway
 
-The API Gateway requires a license for its installation. 
-`helm dep build`
+The API Gateway requires a license for its installation either provided at helm install or retrieved from vault.
 
-`helm install gateway --name "<release name>" --set-file "gateway.license.value=<license file>" --set-file "gateway.license.accept=<true>"  --set imageCredentials.password=<nexus password>`
+`helm dep build gateway`
+
+`helm install gateway --name "<release name>" -f override.yaml --set-file "gateway.license.value=<license file>" --set gateway.license.accept="true"`
 
 
 To delete gateway installation: (Use the release name that you previously specified to install the gateway along with the --name parameter)
@@ -30,13 +31,24 @@ The following table lists the configurable parameters of the Nexus chart and the
 | `imageCredentials.registry`          | Image Secret repo name to fetch image from private repo | `docker.k8s.apimsvc.ca.com`  |
 | `imageCredentials.username`          | Image Secret username credential | `nil`  |
 | `imageCredentials.password`          | Image Secret password credential | `nil`  |
-| `gateway.heapSize`          | Gateway application heap size | 3g  |
-| `gateway.license.value`          | Gateway license file | `nil`  |
-| `gateway.license.accept`          | Accept Gateway license EULA | `false`  |
-| `gateway.javaArgs`          | Additional gateway application java args | `nil`  |
+| `heapSize`          | Gateway application heap size | 3g  |
+| `license.value`          | Gateway license file | `nil`  |
+| `license.accept`          | Accept Gateway license EULA | `false`  |
+| `javaArgs`          | Additional gateway application java args | `nil`  |
 | `service.ports`    | List of http external port mappings               | http: 80 -> 8080, https: 443->8443 |
 | `hazelcast.enable`    | Provision Hazelcast               | true |
 | `influxdb.host`    | influxdb host               | 'influx-influxdb.<namespace>' |
+| `vault.generateSslKey`    | Use a default ssl key from vault at boot up   |false |
+| `vault.gatewayLicense`    | Use license from vault at boot up   |false |
+| `vault.address`    | Vault server address   |https://apim-vault:8200 |
+| `vault.skipVerify`    | Skip verification of vault server ssl certificate   | true |
+| `vault.serviceAccount`    | k8s service account name that will be created at helm install |gateway-vault |
+| `vault.role`    | The vault role that k8s service account has been assigned to   |gateway |
+| `vault.initContainerImage`    | The image for init container that retrieves secrets from vault.   |docker.k8s.apimgcp.com/repository/docker-hosted/openssl_consul |
+| `vault.initContainerTag`    | The tag for init container.   |"init1" |
+| `vault.mountPath`    | Where the shared directory should be mounted on both containers   | /opt/vault |
+
+
 
 ### Logs & Audit Configuration
 
@@ -53,3 +65,6 @@ The API Gateway containers are configured to output logs and audits as JSON even
       Set '-Dcom.l7tech.server.pkix.useDefaultTrustAnchors=true' for well known Certificate Authorities be included as Trust Anchors (true/false)
 - Allow wildcards when verifying hostnames (true/false)
     - Set '-Dcom.l7tech.security.ssl.hostAllowWildcard=true' to allow wildcards when verifying hostnames (true/false)
+    
+### Secrets from Vault
+Vault can be used to hold secrets that gateway use at boot up, e.g. default ssl key, license, and bundles. An init container can be used to retrieve secrets from vault and pass as files to gateway to bootstrap.

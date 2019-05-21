@@ -2,74 +2,65 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-nameOverride: ""
-fullnameOverride: ""
-
-replicaCount: 1
-
-revisionHistoryLimit: 10
-updateStrategy: {}
-  # type: RollingUpdate
-  # rollingUpdate:
-  #   maxSurge: 1
-#   maxUnavailable: 0
-container:
-  image: docker.k8s.apimsvc.ca.com/repository/docker-hosted/gateway
-  tag: gateway_json-135
-  pullPolicy: Always
-
-imageCredentials:
-    name: docker.k8s.apimsvc.ca.com
-    registry: docker.k8s.apimsvc.ca.com
-    username: admin
-    password:
-
-service:
-  type: LoadBalancer
-  # clusterIP: None
-  ## LoadBalancer IP if service.type is LoadBalancer
-  ## Default: nil
-  ##
-  # loadBalancerIP: 10.2.2.2
-  ports:
-    - name: http
-      internal: 8080
-      external: 80
-    - name: https
-      internal: 8443
-      external: 443
-
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 120
-  timeoutSeconds: 5
-  periodSeconds: 5
-  successThreshold: 1
-
-readinessProbe:
-  enabled: true
-  initialDelaySeconds: 20
-  failureThreshold: 20
-  timeoutSeconds: 1
-  periodSeconds: 5
-  successThreshold: 1
-
-
-resources:
-  requests:
-    memory: 2Gi
-    cpu: 1
-  limits:
-    memory: 4Gi
-    cpu: 3
-
-nodeSelector: {}
-
-tolerations: []
-
-afinity: {}
-
 gateway:
+
+  replicaCount: 1
+  deploymentStrategy: RollingUpdate
+  image:
+    imageName: docker.k8s.apimsvc.ca.com/repository/docker-hosted/gateway
+    tag: gateway_json-135
+    pullPolicy: Always
+  imageCredentials:
+      name: docker.k8s.apimsvc.ca.com
+      registry: docker.k8s.apimsvc.ca.com
+      username: admin
+      password:
+
+  nameOverride: ""
+  fullnameOverride: ""
+  adminUsername: "admin"
+  adminPassword: "7layer"
+  service:
+    name: gw
+    type: ClusterIP
+    loadBalancerIP: ""
+    ports:
+      - name: http
+        internal: 8080
+        external: 80
+      - name: https
+        internal: 8443
+        external: 443
+
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 120
+      timeoutSeconds: 5
+      periodSeconds: 5
+      successThreshold: 1
+
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      failureThreshold: 20
+      timeoutSeconds: 1
+      periodSeconds: 5
+      successThreshold: 1
+
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1
+    limits:
+      memory: 4Gi
+      cpu: 3
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
   heapSize: "3g"
   javaArgs: ""
   license:
@@ -83,6 +74,7 @@ gateway:
 
 
 hazelcast:
+
   enabled: true
   fullnameOverride: gw-hazelcast
   hazelcast:
@@ -112,3 +104,17 @@ hazelcast:
           </network>
         </hazelcast>
 
+influxdb:
+
+  host: ""
+
+vault:
+  generateSslKey: true
+  gatewayLicense: true
+  serviceAccount: "gateway-vault"
+  address: "https://apim-vault:8200"
+  role: "gateway"
+  initContainerImage: "docker.dev1.apimgcp.com/repository/docker-hosted/openssl_consul"
+  initContainerTag: "init33"
+  skipVerify: "true"
+  mountPath: "/opt/vault"

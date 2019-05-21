@@ -1,118 +1,178 @@
-apiVersion: apps/v1beta1
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ template "gateway.fullname" . }}
+  name: gw-{{ .Release.Namespace }}
   labels:
-    app: {{ template "gateway.name" . }}
-    chart: {{ template "gateway.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    app: gw-{{ .Release.Namespace }}
 spec:
-  replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
-{{- if .Values.updateStrategy }}
+  replicas: {{ .Values.gateway.replicaCount }}
   strategy:
-{{ toYaml .Values.updateStrategy | indent 4 }}
-{{- end }}
+    type: {{ .Values.gateway.deploymentStrategy }}
+  {{- if ne .Values.gateway.deploymentStrategy "RollingUpdate" }}
+    rollingUpdate: null
+  {{- end }}
   template:
     metadata:
       labels:
-        app: {{ template "gateway.fullname" . }}
-        release: {{ .Release.Name }}
+        app: gw-{{ .Release.Namespace }}
     spec:
       imagePullSecrets:
-         - name: {{ .Values.imageCredentials.name | quote }}
-      containers:
-        - name: {{ .Chart.Name }}
-          image: {{ .Values.container.image }}:{{ .Values.container.tag }}
-          imagePullPolicy: {{ .Values.container.pullPolicy }}
-          resources:
-{{ toYaml .Values.resources | indent 12 }}
-          ports:
-            {{- range .Values.service.ports }}
-            - containerPort: {{ .internal }}
-            {{- end }}
+         - name: {{ .Values.gateway.imageCredentials.name | quote }}
+    {{- if or .Values.vault.generateSslKey .Values.vault.gatewayLicense }}
+      serviceAccountName: {{ .Values.vault.serviceAccount }}
+      initContainers:
+        - name: gateway-init
+          image: {{ .Values.vault.initContainerImage }}:{{ .Values.vault.initContainerTag }}
+          command:
+            - "sh"
+            - "-c"
+            - >
+              KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token);
+              export VAULT_TOKEN=$(curl -k --request POST --data '{"jwt": "'"$KUBE_TOKEN"'", "role": "{{ .Values.vault.role }}"}' {{ .Values.vault.address }}/v1/auth/kubernetes/login | jq -j '.auth.client_token');
+              /opt/consul-template/setup.sh;
           volumeMounts:
-            - name: {{ template "gateway.fullname" . }}-license-xml
-              mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/license/license.xml
-              subPath: license.xml
-            - name: {{ template "gateway.fullname" . }}-hazelcast-client
-              mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/assertions/ExternalHazelcastSharedStateProviderAssertion/hazelcast-client.xml
-              subPath: hazelcast-client.xml
-            - name: {{ template "gateway.fullname" . }}-log-config-override
-              mountPath: /opt/SecureSpan/Gateway/node/default/etc/conf/log-override.properties
-              subPath: log-override.properties
+          {{- if .Values.vault.generateSslKey }}
+            - name: gateway-ssl-key
+              mountPath: {{ .Values.vault.mountPath }}
+          {{- end }}
+          {{- if .Values.vault.gatewayLicense }}
+            - name: license-xml
+              mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/license
+          {{- end }}
           env:
-            - name: ACCEPT_LICENSE
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ template "gateway.fullname" . }}
-                  key: accept.license
-            - name: EXTRA_JAVA_ARGS
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ template "gateway.fullname" . }}
-                  key: extra-java-args.env
-            - name: SSG_JVM_HEAP
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ template "gateway.fullname" . }}
-                  key: ssg-jvm-heap.env
-{{- if  .Values.gateway.customTlsKey.enabled }}
-            - name: SSG_SSL_KEY_PEM
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.gateway.customTlsKey.secretName }}
-                  key: {{ .Values.gateway.customTlsKey.pem }}
-            - name: SSG_SSL_KEY_PEM_CERTS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.gateway.customTlsKey.secretName }}
-                  key: {{ .Values.gateway.customTlsKey.cert }}
-{{- end }}
-{{- range $name, $value := .Values.gateway.env }}
-{{- if not (empty $value) }}
-            - name: {{ $name | quote }}
-              value: {{ $value | quote }}
-{{- end }}
-{{- end }}
-{{- if .Values.livenessProbe.enabled }}
-          livenessProbe:
-            exec:
-              command:
-              - /opt/docker/rc.d/diagnostic/health_check.sh
-            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
-            successThreshold: {{ .Values.livenessProbe.successThreshold }}
-{{- end }}
-{{- if .Values.readinessProbe.enabled }}
-          readinessProbe:
-            exec:
-              command:
-              - /opt/docker/rc.d/diagnostic/health_check.sh
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-            successThreshold: {{ .Values.readinessProbe.successThreshold }}
-{{- end }}
+            - name: VAULT_ADDR
+              value: {{ .Values.vault.address }}
+            - name: VAULT_SKIP_VERIFY
+              value: {{ .Values.vault.skipVerify | quote }}
+    {{- end }}
+      containers:
+      - name: gw
+        {{- if .Values.gateway.image.imageName }}
+        image: {{ .Values.gateway.image.imageName }}:{{ .Values.gateway.image.tag }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
+        resources:
+{{ toYaml .Values.gateway.resources | indent 10 }}
+        ports:
+          {{- range .Values.gateway.service.ports }}
+          - containerPort: {{ .internal }}
+          {{- end }}
+        volumeMounts:
+          - name: license-xml
+        {{- if .Values.vault.gatewayLicense }}
+            mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/license
+        {{- else }}
+            mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/license/license.xml
+            subPath: license.xml
+        {{- end }}
+          - name: metrics-volume
+            mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/bundle/metrics-policy.req.bundle
+            subPath: metrics-policy.bundle
+          - name: hazelcast-client
+            mountPath: /opt/SecureSpan/Gateway/node/default/etc/bootstrap/assertions/ExternalHazelcastSharedStateProviderAssertion/hazelcast-client.xml
+            subPath: hazelcast-client.xml
+          - name: log-config-override
+            mountPath: /opt/SecureSpan/Gateway/node/default/etc/conf/log-override.properties
+            subPath: log-override.properties
+        {{- if .Values.vault.generateSslKey }}
+          - name: gateway-ssl-key
+            mountPath: {{ .Values.vault.mountPath }}
+        {{- end }}
+        env:
+          - name: ACCEPT_LICENSE
+            valueFrom:
+              configMapKeyRef:
+                name: gateway-config
+                key: accept.license
+          - name: EXTRA_JAVA_ARGS
+            valueFrom:
+              configMapKeyRef:
+                name: gateway-config
+                key: extra-java-args.env
+          - name: SSG_JVM_HEAP
+            valueFrom:
+              configMapKeyRef:
+                name: gateway-config
+                key: ssg-jvm-heap.env
+        {{- if  .Values.gateway.customTlsKey.enabled }}
+          - name: SSG_SSL_KEY_PEM
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.gateway.customTlsKey.secretName }}
+                key: {{ .Values.gateway.customTlsKey.pem }}
+          - name: SSG_SSL_KEY_PEM_CERTS
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.gateway.customTlsKey.secretName }}
+                key: {{ .Values.gateway.customTlsKey.cert }}
+        {{- end }}
+          - name: ACCEPT_LICENSE
+            valueFrom:
+              configMapKeyRef:
+                name: gateway-config
+                key: accept.license
+          - name: SSG_ADMIN_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: gw-pm-credentials
+                key: ssg-admin-username
+          - name: SSG_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: gw-pm-credentials
+                key: ssg-admin-password
+        livenessProbe:
+          exec:
+            command:
+            - /opt/docker/rc.d/diagnostic/health_check.sh
+          initialDelaySeconds: {{ .Values.gateway.service.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.gateway.service.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.gateway.service.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.gateway.service.livenessProbe.successThreshold }}
+        readinessProbe:
+          exec:
+            command:
+            - /opt/docker/rc.d/diagnostic/health_check.sh
+          initialDelaySeconds: {{ .Values.gateway.service.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.gateway.service.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.gateway.service.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.gateway.service.readinessProbe.failureThreshold }}
+          successThreshold: {{ .Values.gateway.service.readinessProbe.successThreshold }}
       volumes:
-        - name: {{ template "gateway.fullname" . }}-license-xml
+      {{- if .Values.vault.generateSslKey }}
+        - name: gateway-ssl-key
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Mi"
+      {{- end }}
+        - name: license-xml
+      {{- if .Values.vault.gatewayLicense }}
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Mi"
+      {{- else }}
           secret:
-            secretName: {{ template "gateway.fullname" .}}-license
+            secretName: gw-license
             items:
             - key: license
               path: license.xml
-        - name: {{ template "gateway.fullname" . }}-hazelcast-client
+      {{- end }}
+        - name: metrics-volume
           configMap:
-            name: {{ template "gateway.fullname" . }}
+            name: gateway-config
+            items:
+            - key: metrics-bundle
+              path: metrics-policy.bundle
+        - name: hazelcast-client
+          configMap:
+            name: gateway-config
             items:
             - key: hazelcast-xml
               path: hazelcast-client.xml
-        - name: {{ template "gateway.fullname" . }}-log-config-override
+        - name: log-config-override
           configMap:
-            name: {{ template "gateway.fullname" . }}
+            name: gateway-config
             items:
             - key: log-override-properties
               path: log-override.properties
