@@ -6,7 +6,7 @@ metadata:
   namespace: dev
   annotations:
     flux.weave.works/automated: "true"
-    flux.weave.works/tag.gateway: semver:*
+    flux.weave.works/tag.gateway.container: semver:*
 #    flux.weave.works/ignore: "true"
 spec:
   releaseName: gateway-dev
