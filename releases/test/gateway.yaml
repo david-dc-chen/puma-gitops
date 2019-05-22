@@ -25,10 +25,11 @@ spec:
       name: env
       key: env.yaml
   values:
+   gateway:
     replicaCount: 1
     container:
       image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
-      tag: 'v17'
+      tag: 'v4'
     imageCredentials:
       name: "docker.dev1.apimgcp.com"
       registry: "docker.dev1.apimgcp.com"
