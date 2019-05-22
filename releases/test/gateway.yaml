@@ -25,25 +25,25 @@ spec:
       name: env
       key: env.yaml
   values:
-   gateway:
-    replicaCount: 1
-    container:
-      image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
-      tag: 'v4'
-    imageCredentials:
-      name: "docker.dev1.apimgcp.com"
-      registry: "docker.dev1.apimgcp.com"
-      username: "admin"
-    hazelcast:
-      enabled: false
-    service:
-      ports:
-        - name: http
-          internal: 8080
-          external: 80
-        - name: https
-          internal: 8443
-          external: 443
-        - name: custom-http
-          internal: 12345
-          external: 12345
+    gateway:
+      replicaCount: 1
+      container:
+        image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
+        tag: 'v4'
+      imageCredentials:
+        name: "docker.dev1.apimgcp.com"
+        registry: "docker.dev1.apimgcp.com"
+        username: "admin"
+      hazelcast:
+        enabled: false
+      service:
+        ports:
+          - name: http
+            internal: 8080
+            external: 80
+          - name: https
+            internal: 8443
+            external: 443
+          - name: custom-http
+            internal: 12345
+            external: 12345
