@@ -112,7 +112,7 @@ vault:
   generateSslKey: true
   gatewayLicense: true
   serviceAccount: "gateway-vault"
-  address: "https://apim-vault:8200"
+  address: "https://apim-vault.default.svc.cluster.local:8200"
   role: "gateway"
   initContainerImage: "docker.dev1.apimgcp.com/repository/docker-hosted/openssl_consul"
   initContainerTag: "init2"
