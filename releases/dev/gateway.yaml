@@ -25,8 +25,8 @@ spec:
   values:
     gateway:
       replicaCount: 1
-      container:
-        image: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
+      image:
+        imageName: docker.dev1.apimgcp.com/repository/docker-hosted/gateway
         tag: 'v4'
       imageCredentials:
         name: "docker.dev1.apimgcp.com"
