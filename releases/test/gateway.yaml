@@ -16,9 +16,6 @@ spec:
     ref: master
   valuesFrom:
   - secretKeyRef:
-      name: image-creds
-      key: image-creds.yaml
-  - secretKeyRef:
       name: gateway-license
       key: license.yaml
   - secretKeyRef:
@@ -34,6 +31,7 @@ spec:
         name: "docker.dev1.apimgcp.com"
         registry: "docker.dev1.apimgcp.com"
         username: "admin"
+        password: "password"
       hazelcast:
         enabled: false
       service:
