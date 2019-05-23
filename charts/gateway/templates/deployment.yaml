@@ -107,11 +107,6 @@ spec:
                 name: {{ .Values.gateway.customTlsKey.secretName }}
                 key: {{ .Values.gateway.customTlsKey.cert }}
         {{- end }}
-          - name: ACCEPT_LICENSE
-            valueFrom:
-              configMapKeyRef:
-                name: gateway-config
-                key: accept.license
           - name: SSG_ADMIN_USERNAME
             valueFrom:
               secretKeyRef:
