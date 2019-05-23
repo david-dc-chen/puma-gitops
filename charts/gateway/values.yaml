@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-
+gateway:
 
   replicaCount: 1
   deploymentStrategy: RollingUpdate
@@ -60,7 +60,7 @@
   tolerations: []
 
   affinity: {}
-gateway:
+
   heapSize: "3g"
   javaArgs: ""
   license:
