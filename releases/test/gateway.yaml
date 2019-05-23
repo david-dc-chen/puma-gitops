@@ -5,7 +5,7 @@ metadata:
   name: gateway-test
   namespace: test
   annotations:
-#    flux.weave.works/ignore: "true"
+    flux.weave.works/ignore: "true"
     flux.weave.works/automated: "true"
     flux.weave.works/tag.gateway.container: semver:*
 spec:
