@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-gateway:
+
 
   replicaCount: 1
   deploymentStrategy: RollingUpdate
@@ -60,12 +60,12 @@ gateway:
   tolerations: []
 
   affinity: {}
-
+gateway:
   heapSize: "3g"
   javaArgs: ""
   license:
     value:
-    accept: false
+    accept: true
   customTlsKey:
     enabled: false
     secretName: gw-tls
