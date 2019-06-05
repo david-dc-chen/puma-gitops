@@ -34,7 +34,6 @@ spec:
         name: "docker.dev1.apimgcp.com"
         registry: "docker.dev1.apimgcp.com"
         username: "admin"
-        password: ""
       hazelcast:
         enabled: false
       service:

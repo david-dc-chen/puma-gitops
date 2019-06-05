@@ -109,8 +109,8 @@ influxdb:
   host: ""
 
 vault:
-  generateSslKey: true
-  gatewayLicense: true
+  generateSslKey: false
+  gatewayLicense: false
   serviceAccount: "gateway-vault"
   address: "https://apim-vault.default.svc.cluster.local:8200"
   role: "gateway"

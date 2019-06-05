@@ -5,7 +5,7 @@ metadata:
   name: gateway-test
   namespace: test
   annotations:
-    flux.weave.works/ignore: "true"
+    flux.weave.works/ignore: "false"
     flux.weave.works/automated: "true"
     flux.weave.works/tag.gateway.container: semver:*
 spec:
@@ -33,7 +33,6 @@ spec:
         name: "docker.dev1.apimgcp.com"
         registry: "docker.dev1.apimgcp.com"
         username: "admin"
-        password: "password"
       hazelcast:
         enabled: false
       service:
